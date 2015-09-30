@@ -1,0 +1,32 @@
+{
+  "name": "contextual-schema-validator",
+  "version": "0.1.0",
+  "description": "Validates JSON objects allowing you to trim specifics validations in specifics contexts or object values",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tobiadalsecco/contextual-schema-validator.git"
+  },
+  "keywords": [
+    "JSON",
+    "validator",
+    "validate",
+    "validation",
+    "payload",
+    "contextual",
+    "context",
+    "schema"
+  ],
+  "author": "tobiadalsecco",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tobiadalsecco/contextual-schema-validator/issues"
+  },
+  "homepage": "https://github.com/tobiadalsecco/contextual-schema-validator#readme",
+  "dependencies": {
+    "validator": "^4.0.6"
+  }
+}
