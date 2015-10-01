@@ -3,14 +3,14 @@ var validator = require('validator');
 var util = require('util');
 
 var actionToError = {
-  'requireIt' : 'miss',
-  'refuseIt'  : 'conflict',
+  'requireIt' : 'required',
+  'refuseIt'  : 'refused',
   'checkIf'   : 'invalid'
 };
 
 function handleError(prop, action){
   this.hasErrors = true;
-  this.errors.push(actionToError[action] + ':' + prop);
+  this.errors.push({ type: actionToError[action], prop: prop });
   return false;
 }
 
@@ -151,7 +151,7 @@ function validateProperty(args){
 
   // ---------------------------------------------- type ----------------------------------------------
 
-  if(schema.hasOwnProperty('type')){
+  if(value != undefined && schema.hasOwnProperty('type')){
     if(schema.type == 'array'){
 
       // iterates through the array items
@@ -178,6 +178,7 @@ function validateProperty(args){
       }
       
     } else if(schema.type == 'object'){
+
       var validValues = validateNestedSet(
         {
           properties:   value, 
@@ -407,7 +408,9 @@ function analyzeCheckIf(condition, itemKey, itemValue, action, currentContext, p
   if(isObject(condition)){
     var objKeys = Object.keys(condition);
     var objKey = objKeys[0];
-    return validator[objKeys].apply(null, [ itemValue, condition[objKey] ]);
+    var args = condition[objKey];
+    args.unshift(itemValue);
+    return validator[objKey].apply(null, args);
   }
   return validator[condition](itemValue);
 }
