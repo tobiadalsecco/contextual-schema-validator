@@ -2,10 +2,9 @@ var contextualSchemaValidator = require('./index.js');
 
 var util = require('util');
 
-/*
 var productPayload = {
   id: 1,
-  name: 'Spaghetti',
+  name: 'x Spaghetti yz',
   category: 'Food',
   tags: [
     { id: 1, name: 'Italian', iShallNotBeHere: 'But i am here'},
@@ -13,23 +12,6 @@ var productPayload = {
   ],
   nutritionFacts: {
     sodium: 1,
-    carbohydrates: 100,
-    iShallNotBeHere: 'But i am here'
-  },
-  iShallNotBeHere: 'But i am here'
-};
-*/
-
-var productPayload = {
-  id: 1,
-  name: 'Spaghetti with a very very long long name', // max is set to 20 now, will trim error
-  category: 'Food',
-  tags: [
-    { id: 1, name: 'Italian', iShallNotBeHere: 'But i am here'},
-    { /* id: 2, */ name: 'Pasta' }
-  ],
-  nutritionFacts: {
-    sodium: 'wrong-id',
     carbohydrates: 100,
     iShallNotBeHere: 'But i am here'
   },
@@ -55,11 +37,16 @@ var productSchema = {
       }
     },
     checkIf: [
-      'isAlpha',
+      'isString',
       'AND',
       { 'isLength': [3, 20] }
     ],
-    saveIt: 'always'
+    saveIt: 'always',
+    sanitizeIt: [
+      { 'ltrim': [['x']] },
+      { 'rtrim': [['y', 'z']] },
+      'trim'
+    ]
   },
 
   category: {
@@ -89,7 +76,10 @@ var productSchema = {
         saveIt: 'always'
       }
     },
-    saveIt: 'always'
+    saveIt: 'always',
+    remapIt: {
+      'fromArrayToMap': { mapKeyField : 'id'}
+    }
   },
 
   nutritionFacts: {

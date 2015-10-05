@@ -94,7 +94,12 @@ var productSchema = {
         saveIt: 'always'
       }
     },
-    saveIt: 'always'
+    saveIt: 'always',
+    remapIt: {
+      fromArrayToMap: { 
+        mapKeyField : 'id'
+      }
+    }
   },
 
   nutritionFacts: {
@@ -285,6 +290,54 @@ Possible values:
 * 'always'
 * 'never'
 * an object with the 'when' property
+
+### sanitizeIt
+
+Defines if the property will be sanitized by on of the [validator](https://www.npmjs.com/package/validator)'s methods.
+
+Possible values:
+
+* A string with one of the [validator](https://www.npmjs.com/package/validator)'s method name (the ones with no arguments, besides the value, which is automatically passed). Example: 'escape'
+* An object with [validator](https://www.npmjs.com/package/validator)'s method name as the key and an array of arguments. Example: { ltrim: [['s', '.']] }
+* An array with one of the above values as items
+
+### remapIt
+
+Defines some aditional operation on the valid value. Accepts an object with the remap type as key and an object of configurations.
+
+#### remapIt Types
+
+Currently supports only the 'fromArrayToMap' type.
+
+##### fromArrayToMap
+
+Transform an array of objects into a map (object), with each array item mapped by the chosen item key. For example, given the value:
+
+```javascript
+[
+  { id: 1, name: 'Italian' }, 
+  { id: 2, name: 'Pasta' } 
+]
+```
+
+and the remaptIt configuration:
+
+```javascript
+remapIt: {
+  fromArrayToMap: { 
+    mapKeyField : 'id'
+  }
+}
+```
+
+the value will be remapped this way:
+
+```javascript
+{ 
+  '1': { id: 1, name: 'Italian' },
+  '2': { id: 2, name: 'Pasta' } 
+}
+```
 
 ### The 'when' object
 

@@ -80,11 +80,17 @@ function validateProperties(args){
     if(!validProperty)
       if(instance.exitOnFirstError) return false;
 
-    if(validProperty.value != undefined)
-      if(validProperty.saveIt)
-        saveData[currItemKey] = validProperty.value;
-      else
-        auxData[currItemKey]  = validProperty.value;
+    if(validProperty.value != undefined){
+
+      var returnedVal = remapIt(schema[currItemKey], validProperty.value);
+
+      if(validProperty.saveIt){
+        saveData[currItemKey] = returnedVal;
+      } else {
+        auxData[currItemKey]  = returnedVal;
+      }
+    }
+
   }
 }
 
@@ -153,11 +159,9 @@ function validateProperty(args){
 
   if(value != undefined && schema.hasOwnProperty('type')){
     if(schema.type == 'array'){
-
       // iterates through the array items
       var validValues = [];
       for(var i in value){
-
         var validNestedSet = validateNestedSet(
           {
             properties:   value[i], 
@@ -170,15 +174,10 @@ function validateProperty(args){
             auxData:      auxData
           }
         );
-
         if(!validNestedSet) return false;
-
         validValues[i] = validNestedSet;
-
       }
-      
     } else if(schema.type == 'object'){
-
       var validValues = validateNestedSet(
         {
           properties:   value, 
@@ -200,18 +199,70 @@ function validateProperty(args){
       saveIt: saveIt,
       value:  validValues
     };
-
   }
-    
+  
+
+
   // ---------------------------------------------- saveIt ----------------------------------------------
 
   var saveIt = must('saveIt', schema, key, value, context, globalObject);
+
+
+
+  // ---------------------------------------------- sanitizeIt ----------------------------------------------
+
+  if(schema.hasOwnProperty('sanitizeIt')){
+    var sanitizer = schema.sanitizeIt;
+    if(isArray(sanitizer)){
+      for(var s in sanitizer){
+        value = sanitize(sanitizer[s], value);
+      }
+    } else {
+      value = sanitize(sanitizer, value);
+    }
+  }
 
   return {
     saveIt: saveIt,
     value:  value
   };
 
+}
+
+function sanitize(condition, itemValue){
+  if(isObject(condition)){
+    var objKeys = Object.keys(condition);
+    var objKey = objKeys[0];
+    var args = condition[objKey];
+    args.unshift(itemValue);
+    return validator[objKey].apply(null, args);
+  }
+  console.log(condition);
+  return validator[condition](itemValue);
+}
+
+function remapIt(schema, value){
+  
+  if(schema.hasOwnProperty('remapIt')){
+    var remapIt = schema.remapIt;
+    if(isObject(remapIt)){
+      var remapKeys = Object.keys(remapIt);
+      var remapType = remapKeys[0];
+      if(remapType == 'fromArrayToMap'){
+        if(isArray(value)){
+          var newMap = {};
+          var mapKeyField = remapIt.fromArrayToMap.mapKeyField;
+          for(var i in value){
+            var currVal = value[i];
+            newMap[value[i][mapKeyField]] = value[i];
+          }
+          return newMap;
+        }
+      }
+    }
+  } else {
+    return value;
+  }
 }
 
 function validateNestedSet(args){
@@ -233,7 +284,7 @@ function validateNestedSet(args){
   var nestedHasError = false;
   for(var currItemKey in schema){
 
-    console.log('analyze:' + currItemKey);
+    //console.log('analyze:' + currItemKey);
 
     breadcrumb.push(currItemKey);
     var breadcrumbCopy = breadcrumb.slice(0);
@@ -259,8 +310,10 @@ function validateNestedSet(args){
       if(instance.exitOnFirstError) return false;
 
     if(validProperty.saveIt)
-      if(validProperty.value != undefined)
-        validSet[currItemKey] = validProperty.value;
+      if(validProperty.value != undefined){
+        var returnedVal = remapIt(schema[currItemKey], validProperty.value);
+        validSet[currItemKey] = returnedVal;
+      }
 
   }
   //console.log('VALID SET: ', validSet);
