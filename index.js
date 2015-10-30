@@ -1,7 +1,5 @@
 var validator = require('validator');
 
-var util = require('util');
-
 var actionToError = {
   'requireIt' : 'required',
   'refuseIt'  : 'refused',
@@ -109,19 +107,21 @@ function validateProperty(args){
 
   var breadcrumbTxt = breadcrumb.join('.');
 
-  console.log('------------------------ [ ' + breadcrumbTxt + ' ]');
-  console.log('data: ', value);
+  //console.log('------------------------ [ ' + breadcrumbTxt + ' ]');
+  //console.log('data: ', value);
 
   // ---------------------------------------------- requireIt ----------------------------------------------
-
+  var _mustRequire = false;
   if(must('requireIt', schema, key, value, context, globalObject)){
-    console.log('[x] requireIt');
+    //console.log('[x] requireIt');
+    _mustRequire = true;
     if(!payloadHasItem(siblingItems, key)){
       return instance.handleError(breadcrumbTxt, 'requireIt');
     }
   } else {
     //
-    console.log('[ ] requireIt');
+    //console.log('[ ] requireIt');
+    if(value == undefined)  return { saveIt: false };
   }
 
   // ---------------------------------------------- refuseIt ----------------------------------------------
@@ -129,16 +129,16 @@ function validateProperty(args){
   if(schema.hasOwnProperty('refuseIt')){
     // check if item must be refused
     if(must('refuseIt', schema, key, value, context, globalObject)){
-      console.log('[x] refuseIt');
+      //console.log('[x] refuseIt');
       if(payloadHasItem(siblingItems, key)){
         return instance.handleError(breadcrumbTxt, 'refuseIt');
       }
     } else {
-      console.log('[ ] refuseIt');
+      //console.log('[ ] refuseIt');
     }
   } else {
     //
-    console.log('[ ] refuseIt');
+    //console.log('[ ] refuseIt');
   }
 
   // ---------------------------------------------- checkIf ----------------------------------------------
@@ -237,7 +237,7 @@ function sanitize(condition, itemValue){
     args.unshift(itemValue);
     return validator[objKey].apply(null, args);
   }
-  console.log(condition);
+  //console.log(condition);
   return validator[condition](itemValue);
 }
 
@@ -276,15 +276,15 @@ function validateNestedSet(args){
   var saveData     = args.saveData; 
   var auxData      = args.auxData;
 
-  console.log('------------------------------------------------------------------------------------ NESTED SET');
-  //console.log(args); 
+  //console.log('------------------------------------------------------------------------------------ NESTED SET');
+  ////console.log(args); 
 
   var validSet = {};
 
   var nestedHasError = false;
   for(var currItemKey in schema){
 
-    //console.log('analyze:' + currItemKey);
+    ////console.log('analyze:' + currItemKey);
 
     breadcrumb.push(currItemKey);
     var breadcrumbCopy = breadcrumb.slice(0);
@@ -316,13 +316,13 @@ function validateNestedSet(args){
       }
 
   }
-  //console.log('VALID SET: ', validSet);
+  ////console.log('VALID SET: ', validSet);
   return validSet;
 }
 
 function isArray(val){
-  //console.log('runnign isArray', val, Object.prototype.toString.call(val) );
-  //console.log(util.inspect(val, false, null, true));
+  ////console.log('runnign isArray', val, Object.prototype.toString.call(val) );
+  ////console.log(val);
   return Object.prototype.toString.call(val) === "[object Array]";
 }
 
@@ -336,15 +336,15 @@ function isObject(val){
 
 function payloadHasItem(payload, itemKey){
   if(payload.hasOwnProperty(itemKey)) {
-    //console.log('payloadHasItem', itemKey, 'OK');
+    ////console.log('payloadHasItem', itemKey, 'OK');
     return true;
   }
   return false;
 }
 
 function must(action, itemSchema, itemKey, itemValue, currentContext, payload){
-  console.log('analyzing must =>', action, ' for:', itemKey);
-  console.log('schema', itemSchema);
+  //console.log('analyzing must =>', action, ' for:', itemKey);
+  //console.log('schema', itemSchema);
 
   var _must = itemSchema[action];
 
@@ -362,7 +362,7 @@ function must(action, itemSchema, itemKey, itemValue, currentContext, payload){
   
   // when is a more complex condition
   if(_must.hasOwnProperty('when')) {
-    console.log('when...');
+    //console.log('when...');
     if(isArray(_must.when)){
       return analyzeMultipleConditions(_must.when, itemKey, itemValue, action, currentContext, payload);
     }
@@ -379,7 +379,7 @@ function analyzeOneCondition(condition, itemKey, itemValue, action, currentConte
 
   if(action == 'checkIf') return analyzeCheckIf(condition, itemKey, itemValue, currentContext, payload);
 
-  //console.log('analyzing single condition for:', itemKey, " => ", condition);
+  ////console.log('analyzing single condition for:', itemKey, " => ", condition);
   
   var objKeys = Object.keys(condition);
   var objKey = objKeys[0];
@@ -397,7 +397,7 @@ function analyzeOneCondition(condition, itemKey, itemValue, action, currentConte
 }
 
 function analyzeMultipleConditions(conditions, itemKey, itemValue, action, currentContext, payload){
-  //console.log('analyzing multiple conditions for ' + action);
+  ////console.log('analyzing multiple conditions for ' + action);
   var intermediateResult;
   var len = conditions.length;
   for(var i = 0; i < len; i += 2){
@@ -405,10 +405,10 @@ function analyzeMultipleConditions(conditions, itemKey, itemValue, action, curre
     if(i > 0){
       var logic = conditions[i-1];
       if(logic == "AND"){
-        //console.log("AND");
+        ////console.log("AND");
         intermediateResult = intermediateResult && analyzeOneCondition(currArrayItem, itemKey, itemValue, action, currentContext, payload);
       } else if(logic == "OR"){
-        //console.log("OR");
+        ////console.log("OR");
         intermediateResult = intermediateResult || analyzeOneCondition(currArrayItem, itemKey, itemValue, action, currentContext, payload);
       } else {
         throw new Error("Invalid login item in array condition. Must be AND or OR");
@@ -421,23 +421,23 @@ function analyzeMultipleConditions(conditions, itemKey, itemValue, action, curre
 }
 
 function analyzeContextIs(contextIs, itemKey, itemValue, action, currentContext, payload){
-  console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
+  //console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
   if(contextIs == currentContext) return true;
-  console.log('-- ARRAY');
+  //console.log('-- ARRAY');
   if(isArray(contextIs)){
     for(var i in contextIs){
       if(contextIs[i] == currentContext){
-        console.log('context ok!!!!!........');
+        //console.log('context ok!!!!!........');
         return true;
       }
     }
   }
-  console.log('--- FALSE');
+  //console.log('--- FALSE');
   return false;
 }
 
 function analyzePayloadHas(payloadHas, itemKey, itemValue, action, currentContext, payload){
-  //console.log('analyzing [payloadHas] (' + payloadHas + ') condition related to:', itemKey);
+  ////console.log('analyzing [payloadHas] (' + payloadHas + ') condition related to:', itemKey);
   // simple string
   if(typeof payloadHas === 'string') {
 
@@ -447,13 +447,13 @@ function analyzePayloadHas(payloadHas, itemKey, itemValue, action, currentContex
   var objKeys = Object.keys(payloadHas);
   var property = objKeys[0];
   if(payloadHas[property] == payload[property]){
-    //console.log('payloadHas', payloadHas, 'OK');
+    ////console.log('payloadHas', payloadHas, 'OK');
     return true;
   }
 }
 
 function analyzeCheckIf(condition, itemKey, itemValue, action, currentContext, payload){
-  //console.log('analyze checkIf de ', itemKey, 'condition: ', condition);
+  ////console.log('analyze checkIf de ', itemKey, 'condition: ', condition);
   if(isObject(condition)){
     var objKeys = Object.keys(condition);
     var objKey = objKeys[0];
