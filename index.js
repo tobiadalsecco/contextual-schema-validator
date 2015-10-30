@@ -343,16 +343,13 @@ function payloadHasItem(payload, itemKey){
 }
 
 function must(action, itemSchema, itemKey, itemValue, currentContext, payload){
-  //console.log('analyzing must =>', action, ' for:', itemKey);
-  //console.log('schema', itemSchema);
-
-  // array = multiple conditions
-  if(isArray(itemSchema)) return analyzeMultipleConditions(itemSchema, itemKey, itemValue, action, currentContext, payload);
+  console.log('analyzing must =>', action, ' for:', itemKey);
+  console.log('schema', itemSchema);
 
   var _must = itemSchema[action];
 
   // no  property = always must
-  if(!itemSchema.hasOwnProperty(action)) return true;
+  if(!_must) return true;
 
   // always 
   if(_must == 'always') return true;
@@ -360,21 +357,18 @@ function must(action, itemSchema, itemKey, itemValue, currentContext, payload){
   // never 
   if(_must == 'never') return false;
 
-  // when is just a explicit redundant condition reference, so just get its content
+  
+  if(!isObject(_must)) throw new Error('Contextual Schema Validator Error: invalid condition for ' + action + ' (' + _must + ')');
+  
+  // when is a more complex condition
   if(_must.hasOwnProperty('when')) {
-    //console.log('when = recursive...');
-    return must(action, _must.when, itemKey, itemValue, currentContext, payload);
-  }
-
-  //console.log('_must', _must);
-  
-  // some string as validator function call
-  if(validator.hasOwnProperty(_must)) return validator[_must](itemValue);
-  
-  // object = one paramater condition
-  if(typeof _must === 'object') {  
-    // pass the object as a general one param condition
-    return analyzeOneCondition(_must, itemKey, itemValue, action, currentContext, payload);
+    console.log('when...');
+    if(isArray(_must.when)){
+      return analyzeMultipleConditions(_must.when, itemKey, itemValue, action, currentContext, payload);
+    }
+    return analyzeOneCondition(_must.when, itemKey, itemValue, action, currentContext, payload);
+  } else {
+    throw new Error('Contextual Schema Validator Error: invalid condition for ' + action + ' (' + _must + ')');
   }
   
   // no condition matching
@@ -427,16 +421,18 @@ function analyzeMultipleConditions(conditions, itemKey, itemValue, action, curre
 }
 
 function analyzeContextIs(contextIs, itemKey, itemValue, action, currentContext, payload){
-  //console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
+  console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
   if(contextIs == currentContext) return true;
+  console.log('-- ARRAY');
   if(isArray(contextIs)){
     for(var i in contextIs){
       if(contextIs[i] == currentContext){
-        //console.log('context ok!!!!!........');
+        console.log('context ok!!!!!........');
         return true;
       }
     }
   }
+  console.log('--- FALSE');
   return false;
 }
 
