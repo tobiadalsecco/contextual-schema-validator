@@ -6,9 +6,16 @@ var actionToError = {
   'checkIf'   : 'invalid'
 };
 
-function handleError(prop, action){
+function handleError(prop, action, value, globalObject){
   this.hasErrors = true;
-  this.errors.push({ type: actionToError[action], prop: prop });
+  var error = { type: actionToError[action], prop: prop };
+  if(value){
+    error.value = value;
+  }
+  if(globalObject){
+    error.globalObject = globalObject;
+  }
+  this.errors.push(error);
   return false;
 }
 
@@ -145,11 +152,11 @@ function validateProperty(args){
 
   if(schema.hasOwnProperty('checkIf')){
     if(isArray(schema.checkIf)) {
-      if(!analyzeMultipleConditions(schema.checkIf, key, value, 'checkIf', context, globalObject)){
-        return instance.handleError(breadcrumbTxt, 'checkIf');
+      if(!analyzeMultipleConditions(schema.checkIf, key, value, 'checkIf', context, globalObject)) {
+        return instance.handleError(breadcrumbTxt, 'checkIf', value, JSON.stringify(globalObject));
       }
-    } else if(!analyzeOneCondition(schema.checkIf, key, value, 'checkIf', context, globalObject)){
-      return instance.handleError(breadcrumbTxt, 'checkIf');
+    } else if(!analyzeOneCondition(schema.checkIf, key, value, 'checkIf', context, globalObject)) {
+      return instance.handleError(breadcrumbTxt, 'checkIf', value, JSON.stringify(globalObject));
     }
   }
 
@@ -453,11 +460,11 @@ function analyzePayloadHas(payloadHas, itemKey, itemValue, action, currentContex
 }
 
 function analyzeCheckIf(condition, itemKey, itemValue, action, currentContext, payload){
-  ////console.log('analyze checkIf de ', itemKey, 'condition: ', condition);
+  console.log('analyze checkIf de ', itemKey, 'condition: ', condition);
   if(isObject(condition)){
     var objKeys = Object.keys(condition);
     var objKey = objKeys[0];
-    var args = condition[objKey];
+    var args = condition[objKey].slice(0);
     args.unshift(itemValue);
     return validator[objKey].apply(null, args);
   }
