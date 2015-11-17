@@ -255,17 +255,30 @@ function remapIt(schema, value){
     if(isObject(remapIt)){
       var remapKeys = Object.keys(remapIt);
       var remapType = remapKeys[0];
+
       if(remapType == 'fromArrayToMap'){
+
         if(isArray(value)){
           var newMap = {};
           var mapKeyField = remapIt.fromArrayToMap.mapKeyField;
+          var allowProperties = remapIt.fromArrayToMap.allowProperties;
           for(var i in value){
             var currVal = value[i];
-            newMap[value[i][mapKeyField]] = value[i];
+            if(!allowProperties){
+              newMap[value[i][mapKeyField]] = value[i];
+            } else {
+              var currBranch = newMap[value[i][mapKeyField]] = {};
+              for(var p in allowProperties){
+                var prop = allowProperties[p];
+                currBranch[prop] = value[i][prop];
+              }
+            }
           }
           return newMap;
         }
+
       }
+
     }
   } else {
     return value;
