@@ -13,6 +13,11 @@ var productSchema = {
     },
     defaults: {
       'addProduct': function() { return new Date().getTime(); }
+    },
+    saveIt: {
+      when: {
+        contextIs: 'addProduct'
+      }
     }
   },
 

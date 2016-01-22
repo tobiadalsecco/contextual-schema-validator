@@ -128,13 +128,9 @@ function validateProperty(args){
   } else {
     //
     //console.log('[ ] requireIt');
-    var saveIt;
     if(value == undefined){
       if(schema.hasOwnProperty('defaults')){
-        //console.log('has defaults');
         if(schema.defaults.hasOwnProperty(context)){
-          //console.log('has defaults for ', context);
-          saveIt = true;
           if(typeof schema.defaults[context] == 'function'){
             value = schema.defaults[context]();
           } else {
@@ -224,10 +220,9 @@ function validateProperty(args){
 
     //console.log('passou type / nested');
 
-    if(!saveIt) {
-      //console.log('no defaults');
-      saveIt = must('saveIt', schema, key, value, context, globalObject);
-    }
+   
+    var saveIt = must('saveIt', schema, key, value, context, globalObject);
+    
 
     return {
       saveIt: saveIt,
@@ -471,13 +466,13 @@ function analyzeMultipleConditions(conditions, itemKey, itemValue, action, curre
 }
 
 function analyzeContextIs(contextIs, itemKey, itemValue, action, currentContext, payload){
-  console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
+  //console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
   if(contextIs == currentContext) return true;
-  console.log('-- ARRAY');
+  //console.log('-- ARRAY');
   if(isArray(contextIs)){
     for(var i in contextIs){
       if(contextIs[i] == currentContext){
-        console.log('context ok!!!!!........');
+        //console.log('context ok!!!!!........');
         return true;
       }
     }
@@ -487,7 +482,7 @@ function analyzeContextIs(contextIs, itemKey, itemValue, action, currentContext,
 }
 
 function analyzeContextIsNot(contextIs, itemKey, itemValue, action, currentContext, payload){
-  console.log('contextIsNot');
+  //console.log('contextIsNot');
   return !analyzeContextIs(contextIs, itemKey, itemValue, action, currentContext, payload);
 }
 
