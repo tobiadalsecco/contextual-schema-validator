@@ -50,7 +50,9 @@ var productSchema = {
         contextIs: ['updateProduct', 'deleteProduct']
       }
     },
-    saveIt: 'never'
+    defaults: {
+      'addProduct': function() { return someID(); }
+    }
   },
 
   name: {
@@ -65,6 +67,15 @@ var productSchema = {
       { 'isLength': [3, 20] }
     ],
     saveIt: 'always'
+  },
+
+  active: {
+    requireIt: 'never',
+    checkIf: 'isBoolean',
+    defaults: {
+      'addProduct': true,
+      'deleteProduct': false
+    }
   },
 
   category: {
@@ -290,6 +301,18 @@ Possible values:
 * 'always'
 * 'never'
 * an object with the 'when' property
+
+### defaults
+
+An object that defines the defaults values of a property depending on the context. The object pattern is: 
+
+```javascript
+{
+  'theContext': 'the value'
+}
+```
+
+If the property is set in the payload, even if it has a default value for the current context, the original payload value will be kept, and the default will be ignored.
 
 ### sanitizeIt
 

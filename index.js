@@ -114,22 +114,40 @@ function validateProperty(args){
 
   var breadcrumbTxt = breadcrumb.join('.');
 
-  //////console.log('------------------------ [ ' + breadcrumbTxt + ' ]');
-  ////console.log('data: ', value);
+  //console.log('------------------------ [ ' + breadcrumbTxt + ' ]');
+  //console.log('data: ', value);
 
   // ---------------------------------------------- requireIt ----------------------------------------------
   var _mustRequire = false;
   if(must('requireIt', schema, key, value, context, globalObject)){
-    ////console.log('[x] requireIt');
+    //console.log('[x] requireIt');
     _mustRequire = true;
     if(!payloadHasItem(siblingItems, key)){
       return instance.handleError(breadcrumbTxt, 'requireIt');
     }
   } else {
     //
-    ////console.log('[ ] requireIt');
-    if(value == undefined)  return { saveIt: false };
+    //console.log('[ ] requireIt');
+    var saveIt;
+    if(value == undefined){
+      if(schema.hasOwnProperty('defaults')){
+        //console.log('has defaults');
+        if(schema.defaults.hasOwnProperty(context)){
+          //console.log('has defaults for ', context);
+          saveIt = true;
+          if(typeof schema.defaults[context] == 'function'){
+            value = schema.defaults[context]();
+          } else {
+            value = schema.defaults[context];
+          }
+        }
+      } else {
+        return { saveIt: false };
+      }
+    } 
   }
+
+  //console.log('passou required');
 
   // ---------------------------------------------- refuseIt ----------------------------------------------
 
@@ -148,6 +166,8 @@ function validateProperty(args){
     ////console.log('[ ] refuseIt');
   }
 
+  //console.log('passou refuse');
+
   // ---------------------------------------------- checkIf ----------------------------------------------
 
   if(schema.hasOwnProperty('checkIf')){
@@ -159,6 +179,8 @@ function validateProperty(args){
       return instance.handleError(breadcrumbTxt, 'checkIf', value, JSON.stringify(globalObject));
     }
   }
+
+  //console.log('passou checkIf');
 
   var isNestedArray = false, validatedArray = [];
 
@@ -200,7 +222,12 @@ function validateProperty(args){
       if(!validValues) return false;
     }
 
-    var saveIt = must('saveIt', schema, key, value, context, globalObject);
+    //console.log('passou type / nested');
+
+    if(!saveIt) {
+      //console.log('no defaults');
+      saveIt = must('saveIt', schema, key, value, context, globalObject);
+    }
 
     return {
       saveIt: saveIt,

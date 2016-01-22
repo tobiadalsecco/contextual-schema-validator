@@ -2,22 +2,6 @@ var contextualSchemaValidator = require('./index.js');
 
 var util = require('util');
 
-var productPayload = {
-  id: 1,
-  name: 'x Spaghetti yz',
-  category: 'Food',
-  tags: [
-    { id: 1, name: 'Italian', iShallNotBeHere: 'But i am here'},
-    { id: 2, name: 'Pasta' }
-  ],
-  nutritionFacts: {
-    sodium: 1,
-    carbohydrates: 100,
-    iShallNotBeHere: 'But i am here'
-  },
-  iShallNotBeHere: 'But i am here'
-};
-
 var productSchema = {
 
   id: {
@@ -27,7 +11,9 @@ var productSchema = {
         contextIs: ['updateProduct', 'deleteProduct']
       }
     },
-    saveIt: 'never'
+    defaults: {
+      'addProduct': function() { return new Date().getTime(); }
+    }
   },
 
   name: {
@@ -47,6 +33,15 @@ var productSchema = {
       { 'rtrim': [['y', 'z']] },
       'trim'
     ]
+  },
+
+  active: {
+    requireIt: 'never',
+    checkIf: 'isBoolean',
+    defaults: {
+      'addProduct': true,
+      'deleteProduct': false
+    }
   },
 
   category: {
@@ -98,7 +93,10 @@ var productSchema = {
     properties: {
       sodium: {
         requireIt: 'never',
-        checkIf: 'isInt'
+        checkIf: 'isInt',
+        defaults: {
+          'addProduct': 888
+        }
       },
       carbohydrates: {
         requireIt: 'never',
@@ -118,9 +116,50 @@ var productValidator = contextualSchemaValidator.useSchema(productSchema);
 
 productValidator.exitOnFirstError = false; 
 
+console.log('----- addProduct -----');
+
+var productPayload = {
+  // id: 1,
+  name: 'x Spaghetti yz',
+  category: 'Food',
+  tags: [
+    { id: 1, name: 'Italian', iShallNotBeHere: 'But i am here'},
+    { id: 2, name: 'Pasta' }
+  ],
+  nutritionFacts: {
+    sodium: 1,
+    carbohydrates: 100,
+    iShallNotBeHere: 'But i am here'
+  },
+  iShallNotBeHere: 'But i am here'
+};
+
 productValidator.validate(
   productPayload,  // the data
   'addProduct', // the context
+  {
+    onError: function(errors){
+      console.error('[ ERRORS ] ', errors);
+    },
+    onSuccess: function(saveData, auxData){
+      console.log(' [ SAVE_DATA ] ');
+      console.log(util.inspect(saveData, false, null, true));
+      console.log(' [ AUX_DATA ] ');
+      console.log(util.inspect(auxData, false, null, true));
+    }
+  }
+);
+
+console.log('----- deleteProduct -----');
+
+var productPayload = {
+  id: 1,
+  iShallNotBeHere: 'But i am here'
+};
+
+productValidator.validate(
+  productPayload,  // the data
+  'deleteProduct', // the context
   {
     onError: function(errors){
       console.error('[ ERRORS ] ', errors);
