@@ -1,6 +1,6 @@
 {
   "name": "contextual-schema-validator",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Validates JSON objects allowing you to trim specifics validations in specifics contexts or object values",
   "main": "index.js",
   "scripts": {
