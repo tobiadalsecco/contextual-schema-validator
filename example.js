@@ -8,7 +8,7 @@ var productSchema = {
     checkIf: 'isInt',
     requireIt: {
       when: {
-        contextIs: ['updateProduct', 'deleteProduct']
+        contextIsNot: ['addProduct']
       }
     },
     defaults: {
@@ -119,7 +119,7 @@ productValidator.exitOnFirstError = false;
 console.log('----- addProduct -----');
 
 var productPayload = {
-  // id: 1,
+  id: 1,
   name: 'x Spaghetti yz',
   category: 'Food',
   tags: [

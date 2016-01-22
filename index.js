@@ -435,6 +435,9 @@ function analyzeOneCondition(condition, itemKey, itemValue, action, currentConte
     case 'contextIs': 
       return analyzeContextIs(condition.contextIs, itemKey, itemValue, action, currentContext, payload);
       break;
+    case 'contextIsNot': 
+      return analyzeContextIsNot(condition.contextIsNot, itemKey, itemValue, action, currentContext, payload);
+      break;
     case 'payloadHas':
       return analyzePayloadHas(condition.payloadHas, itemKey, itemValue, action, currentContext, payload);
       break;
@@ -468,19 +471,24 @@ function analyzeMultipleConditions(conditions, itemKey, itemValue, action, curre
 }
 
 function analyzeContextIs(contextIs, itemKey, itemValue, action, currentContext, payload){
-  ////console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
+  console.log('analyzing [contextIs] (' + contextIs + ' == ' + currentContext + ') conditions for:', itemKey);
   if(contextIs == currentContext) return true;
-  ////console.log('-- ARRAY');
+  console.log('-- ARRAY');
   if(isArray(contextIs)){
     for(var i in contextIs){
       if(contextIs[i] == currentContext){
-        ////console.log('context ok!!!!!........');
+        console.log('context ok!!!!!........');
         return true;
       }
     }
   }
   ////console.log('--- FALSE');
   return false;
+}
+
+function analyzeContextIsNot(contextIs, itemKey, itemValue, action, currentContext, payload){
+  console.log('contextIsNot');
+  return !analyzeContextIs(contextIs, itemKey, itemValue, action, currentContext, payload);
 }
 
 function analyzePayloadHas(payloadHas, itemKey, itemValue, action, currentContext, payload){
