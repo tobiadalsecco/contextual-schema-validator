@@ -382,6 +382,10 @@ Possible values:
 * A string with the context name
 * An array of strings. The context should be match one of them (like an 'OR' logical operator)
 
+### contextIsNot
+
+Same as contextIs, but opposite result.
+
 ### payloadHas
 
 Defines a condition in which if the payload (the validated object) has a property with a certain values, the action should take place.
