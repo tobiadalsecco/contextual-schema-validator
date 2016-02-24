@@ -137,6 +137,12 @@ function validateProperty(args){
             value = schema.defaults[context];
           }
         }
+      } else if(schema.hasOwnProperty('default')){
+        if(typeof schema.default == 'function'){
+          value = schema.default();
+        } else {
+          value = schema.default;
+        }
       } else {
         return { saveIt: false };
       }
