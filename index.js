@@ -87,7 +87,11 @@ function validateProperties(args){
 
     if(validProperty.value != undefined){
 
-      var returnedVal = remapIt(schema[currItemKey], validProperty.value);
+      var returnedVal = validProperty.value;
+
+      if(must('remapIt', schema[currItemKey], currItemKey, properties[currItemKey], context, properties)){
+        returnedVal = remapIt(schema[currItemKey], validProperty.value);
+      } 
 
       if(validProperty.saveIt){
         saveData[currItemKey] = returnedVal;
@@ -307,6 +311,8 @@ function remapIt(schema, value){
 
       }
 
+    }else {
+      return value;
     }
   } else {
     return value;
@@ -357,11 +363,15 @@ function validateNestedSet(args){
     if(!validProperty)
       if(instance.exitOnFirstError) return false;
 
-    if(validProperty.saveIt)
-      if(validProperty.value != undefined){
-        var returnedVal = remapIt(schema[currItemKey], validProperty.value);
+    if(validProperty.saveIt){
+      if(validProperty.value != undefined){ 
+        var returnedVal = validProperty.value;
+        if(must('remapIt', schema[currItemKey], currItemKey, returnedVal, context, globalObject)){
+          returnedVal = remapIt(schema[currItemKey], returnedVal);
+        }
         validSet[currItemKey] = returnedVal;
       }
+    }
 
   }
   //////console.log('VALID SET: ', validSet);
@@ -391,13 +401,26 @@ function payloadHasItem(payload, itemKey){
 }
 
 function must(action, itemSchema, itemKey, itemValue, currentContext, payload){
-  ////console.log('analyzing must =>', action, ' for:', itemKey);
-  ////console.log('schema', itemSchema);
+  
+  if(action == 'remapIt') { 
+    //console.log('analyzing must =>', action, ' for:', itemKey); 
+  }
+
+  //console.log('schema', itemSchema);
 
   var _must = itemSchema[action];
 
   // no  property = always must
-  if(!_must) return true;
+  if(!_must) {
+    // but not for remapping!
+    if(action == 'remapIt') {
+      //console.log(_must);
+      //console.log('---- no remap');
+      return false;
+    } else {
+      return true;
+    }
+  }
 
   // always 
   if(_must == 'always') return true;
@@ -410,11 +433,12 @@ function must(action, itemSchema, itemKey, itemValue, currentContext, payload){
   
   // when is a more complex condition
   if(_must.hasOwnProperty('when')) {
-    ////console.log('when...');
     if(isArray(_must.when)){
       return analyzeMultipleConditions(_must.when, itemKey, itemValue, action, currentContext, payload);
     }
     return analyzeOneCondition(_must.when, itemKey, itemValue, action, currentContext, payload);
+  } else if(action == 'remapIt') {
+    return true;
   } else {
     throw new Error('Contextual Schema Validator Error: invalid condition for ' + action + ' (' + _must + ')');
   }
