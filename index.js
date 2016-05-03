@@ -179,10 +179,26 @@ function validateProperty(args){
   if(schema.hasOwnProperty('checkIf')){
     if(isArray(schema.checkIf)) {
       if(!analyzeMultipleConditions(schema.checkIf, key, value, 'checkIf', context, globalObject)) {
-        return instance.handleError(breadcrumbTxt, 'checkIf', value, JSON.stringify(globalObject));
+        var _globalObj = null
+        if(instance.showErrorContext == true){
+          _globalObj = JSON.stringify(globalObject)
+        }
+        var _value = null;
+        if(instance.showErrorValue == true){
+          _value = value;
+        }
+        return instance.handleError(breadcrumbTxt, 'checkIf', _value, _globalObj);
       }
     } else if(!analyzeOneCondition(schema.checkIf, key, value, 'checkIf', context, globalObject)) {
-      return instance.handleError(breadcrumbTxt, 'checkIf', value, JSON.stringify(globalObject));
+      var _globalObj = null
+      if(instance.showErrorContext == true){
+        _globalObj = JSON.stringify(globalObject)
+      }
+      var _value = null;
+      if(instance.showErrorValue == true){
+        _value = value;
+      }
+      return instance.handleError(breadcrumbTxt, 'checkIf', _value, _globalObj);
     }
   }
 
@@ -566,6 +582,8 @@ function useSchema(schema){
     errors: [],
     validator: validator,
     exitOnFirstError: true,
+    showErrorContext: false,
+    showErrorValue: false
   };
 
   return smartValidatorObj;
